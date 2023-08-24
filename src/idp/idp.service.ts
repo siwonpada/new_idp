@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
-import { LoginInfoDto } from './dto/req/loginInfo.dto';
+import { LoginInfoDTO } from './dto/req/loginInfo.dto';
 import { LoginResult } from './types/login-redirection.type';
 import { UserService } from 'src/user/user.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -18,7 +18,7 @@ export class IdpService {
     async login({
         userEmailId,
         userPassword,
-    }: LoginInfoDto): Promise<LoginResult> {
+    }: LoginInfoDTO): Promise<LoginResult> {
         const user = await this.userService.validateUserPassword({
             userEmailId,
             userPassword,
@@ -39,6 +39,30 @@ export class IdpService {
                 },
             ),
             refreshToken,
+        };
+    }
+
+    async logout(refreshToken: string): Promise<void> {
+        await this.cache.del(refreshToken);
+    }
+
+    async refresh(refreshToken: string): Promise<LoginResult> {
+        if (!refreshToken) throw new UnauthorizedException('Invalid Token');
+        const user: { userUuid: string } = await this.cache.get(refreshToken);
+        if (!user) throw new UnauthorizedException('Invalid Token');
+        await this.cache.del(refreshToken);
+
+        const newRefreshToken = this.generateOpaqueToken();
+        this.cache.set(newRefreshToken, user, 60 * 60 * 24 * 30 * 6);
+
+        return {
+            accessToken: this.jwtService.sign(
+                {},
+                {
+                    subject: user.userUuid,
+                },
+            ),
+            refreshToken: newRefreshToken,
         };
     }
 
