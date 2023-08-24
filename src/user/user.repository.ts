@@ -34,7 +34,7 @@ export class UserRepository {
         userName,
         studentId,
         userPhoneNumber,
-    }: Omit<UserType, 'accessLevel' | 'userUuid'>): Promise<void> {
+    }: Omit<UserType, 'accessLevel' | 'userUuid'>): Promise<User> {
         const createdUser = this.entityManager.create(User, {
             userEmailId,
             userPassword,
@@ -42,7 +42,7 @@ export class UserRepository {
             studentId,
             userPhoneNumber,
         });
-        await this.entityManager.save(createdUser).catch((e) => {
+        return await this.entityManager.save(createdUser).catch((e) => {
             if (e.errno === 1062)
                 throw new ConflictException('user alread exists');
             else throw new InternalServerErrorException(e.sqlMessage);
