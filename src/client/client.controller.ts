@@ -3,6 +3,8 @@ import {
     Controller,
     Get,
     Param,
+    ParseUUIDPipe,
+    Patch,
     Post,
     UseGuards,
     UsePipes,
@@ -15,29 +17,35 @@ import { User } from 'src/global/entity/user.entity';
 import { Client } from 'src/global/entity/client.entity';
 import { ClientInfoDto } from './dto/req/clientInfo.dto';
 import { ClientCredentialDTO } from './dto/res/clientCredentialRes.dto';
+import { ClientGuard } from './guard/client.guard';
+import { GetClient } from 'src/global/decorator/getClient.decorator';
+import { UpdateClientDTO } from './dto/req/updateClient.dto';
 
 @Controller('client')
+@UsePipes(new ValidationPipe({ transform: true }))
 export class ClientController {
     constructor(private readonly clientService: ClientService) {}
 
+    //유저의 client list
     @Get()
     @UseGuards(IdpGuard)
     async getClientList(@GetUser() user: User): Promise<Client[]> {
         return this.clientService.getClientList(user);
     }
 
+    //특정 client 정보
     @Get(':uuid')
     @UseGuards(IdpGuard)
     async getClient(
-        @Param('uuid') uuid: string,
+        @Param('uuid', ParseUUIDPipe) uuid: string,
         @GetUser() user: User,
     ): Promise<Client> {
         return this.clientService.getClient(uuid, user);
     }
 
+    //client 등록
     @Post()
     @UseGuards(IdpGuard)
-    @UsePipes(ValidationPipe)
     async registerClient(
         @Body() clientInfoDto: ClientInfoDto,
         @GetUser() user: User,
@@ -45,12 +53,30 @@ export class ClientController {
         return this.clientService.registerClient(clientInfoDto, user);
     }
 
+    //client 비번 변경
     @Post(':uuid/reset')
-    @UseGuards(IdpGuard)
+    @UseGuards(ClientGuard)
     async resetClientSecret(
-        @Param('uuid') uuid: string,
+        @Param('uuid', ParseUUIDPipe) uuid: string,
         @GetUser() user: User,
     ): Promise<ClientCredentialDTO> {
         return this.clientService.resetClientSecret(uuid, user);
+    }
+
+    //client admin 권한 요청
+    @Post('admin')
+    @UseGuards(ClientGuard)
+    async adminRequest(@GetClient() client: Client): Promise<void> {
+        return this.clientService.adminRequest(client);
+    }
+
+    //client 정보 변경
+    @Patch('')
+    @UseGuards(ClientGuard)
+    async updateClient(
+        @Body() updateClientUrlsDTO: UpdateClientDTO,
+        @GetClient() client: Client,
+    ): Promise<void> {
+        return this.clientService.updateClient(updateClientUrlsDTO, client);
     }
 }

@@ -1,14 +1,26 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+    ForbiddenException,
+    Injectable,
+    InternalServerErrorException,
+} from '@nestjs/common';
 import { Client } from 'src/global/entity/client.entity';
 import { User } from 'src/global/entity/user.entity';
 import { ClientRepository } from './client.repository';
 import * as bcrypt from 'bcrypt';
 import { ClientInfoDto } from './dto/req/clientInfo.dto';
 import { ClientCredentialDTO } from './dto/res/clientCredentialRes.dto';
+import { firstValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { UpdateClientDTO } from './dto/req/updateClient.dto';
 
 @Injectable()
 export class ClientService {
-    constructor(private readonly clientRepository: ClientRepository) {}
+    constructor(
+        private readonly clientRepository: ClientRepository,
+        private readonly httpService: HttpService,
+        private readonly configService: ConfigService,
+    ) {}
 
     async getClientList(user: User): Promise<Client[]> {
         return user.clients;
@@ -16,7 +28,7 @@ export class ClientService {
 
     async getClient(uuid: string, user: User): Promise<Client> {
         const client = user.clients.find((client) => client.uuid === uuid);
-        if (!client) throw new NotFoundException('Client not found');
+        if (!client) throw new ForbiddenException('Client not found');
         return client;
     }
 
@@ -36,6 +48,31 @@ export class ClientService {
         };
     }
 
+    async adminRequest(client: Client): Promise<void> {
+        await firstValueFrom(
+            this.httpService.post(
+                this.configService.get<string>('SLACK_WEBHOOK_URL'),
+                {
+                    text: `Service server ${client.id} sends permission request`,
+                    attachments: [
+                        {
+                            color: '#36a64f',
+                            title: 'Details',
+                            fields: [
+                                { title: 'ClientId', value: `${client.id}` },
+                                { title: 'UUID', value: `${client.uuid}` },
+                            ],
+                        },
+                    ],
+                },
+            ),
+        ).catch(() => {
+            throw new InternalServerErrorException(
+                'Failed to send slack message',
+            );
+        });
+    }
+
     async resetClientSecret(
         uuid: string,
         user: User,
@@ -53,6 +90,21 @@ export class ClientService {
             clientId: client.id,
             clientSecret: secretKey,
         };
+    }
+
+    async updateClient(
+        { name, urls }: UpdateClientDTO,
+        client: Client,
+    ): Promise<void> {
+        await this.clientRepository.updateClient({ name, urls }, client);
+        return;
+    }
+
+    async validateClient(id: string, secret: string): Promise<Client> {
+        const client = await this.clientRepository.findById({ id });
+        if (!client) return null;
+        if (!bcrypt.compareSync(secret, client.password)) return null;
+        return client;
     }
 
     private generateSecretKey(): { secretKey: string; hashed: string } {

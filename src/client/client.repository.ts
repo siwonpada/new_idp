@@ -1,8 +1,8 @@
 import {
     ConflictException,
+    ForbiddenException,
     Injectable,
     InternalServerErrorException,
-    NotFoundException,
 } from '@nestjs/common';
 import { Client } from 'src/global/entity/client.entity';
 import { User } from 'src/global/entity/user.entity';
@@ -12,6 +12,10 @@ import { EntityManager } from 'typeorm';
 @Injectable()
 export class ClientRepository {
     constructor(private readonly entityManager: EntityManager) {}
+
+    async findById({ id }: Pick<ClientType, 'id'>): Promise<Client> {
+        return await this.entityManager.findOne(Client, { where: { id } });
+    }
 
     async createClient(
         {
@@ -44,8 +48,17 @@ export class ClientRepository {
         const client = await this.entityManager.findOne(Client, {
             where: { uuid, members: { userUuid: user.userUuid } },
         });
-        if (!client) throw new NotFoundException('client not found');
+        if (!client) throw new ForbiddenException('client not found');
         client.password = password;
+        return await this.entityManager.save(client);
+    }
+
+    async updateClient(
+        { name, urls }: Partial<Pick<ClientType, 'name' | 'urls'>>,
+        client: Client,
+    ): Promise<Client> {
+        client.name = name;
+        client.urls = urls;
         return await this.entityManager.save(client);
     }
 }
