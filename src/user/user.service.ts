@@ -18,6 +18,8 @@ import { UserRepository } from './user.repository';
 import * as bcrypt from 'bcrypt';
 import { DeleteUserDTO } from './dto/req/deleteUser.dto';
 import { ChangePasswordDTO } from './dto/req/changePassword.dto';
+import { UserType } from 'src/global/type/user.type';
+import { User } from 'src/global/entity/user.entity';
 
 @Injectable()
 export class UserService {
@@ -136,5 +138,18 @@ export class UserService {
         //delete user password
         await this.userRepository.deleteUser({ userEmailId });
         return { message: 'success' };
+    }
+
+    async validateUserPassword({
+        userEmailId,
+        userPassword,
+    }: Pick<UserType, 'userEmailId' | 'userPassword'>): Promise<User> {
+        const user = await this.userRepository.findOneByEmailId({
+            userEmailId: userEmailId,
+        });
+        if (!user) throw new NotFoundException('user not found');
+        if (!bcrypt.compareSync(userPassword, user.userPassword))
+            throw new UnauthorizedException('invalid password');
+        return user;
     }
 }
