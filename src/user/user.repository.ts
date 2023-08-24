@@ -1,11 +1,11 @@
+import { User } from '@global/entity/user.entity';
+import { UserType } from '@global/type/user.type';
 import {
     ConflictException,
     Injectable,
     InternalServerErrorException,
     NotFoundException,
 } from '@nestjs/common';
-import { User } from 'src/global/entity/user.entity';
-import { UserType } from 'src/global/type/user.type';
 import { EntityManager } from 'typeorm';
 
 @Injectable()

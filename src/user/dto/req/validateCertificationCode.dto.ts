@@ -1,5 +1,5 @@
+import { IsGistEmail } from '@global/validator/gistEmail.validator';
 import { IsEmail, IsString } from 'class-validator';
-import { IsGistEmail } from 'src/global/validator/gistEmail.validator';
 
 export class ValidateCertificationCodeDTO {
     @IsEmail()

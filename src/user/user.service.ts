@@ -17,9 +17,9 @@ import { UserRepository } from './user.repository';
 import * as bcrypt from 'bcrypt';
 import { DeleteUserDTO } from './dto/req/deleteUser.dto';
 import { ChangePasswordDTO } from './dto/req/changePassword.dto';
-import { UserType } from 'src/global/type/user.type';
-import { User } from 'src/global/entity/user.entity';
 import { MessageResDTO } from './dto/res/message.dto';
+import { UserType } from '@global/type/user.type';
+import { User } from '@global/entity/user.entity';
 
 @Injectable()
 export class UserService {

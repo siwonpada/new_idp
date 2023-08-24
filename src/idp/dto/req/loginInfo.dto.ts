@@ -1,6 +1,6 @@
+import { UserType } from '@global/type/user.type';
+import { IsGistEmail } from '@global/validator/gistEmail.validator';
 import { IsEmail, IsString } from 'class-validator';
-import { UserType } from 'src/global/type/user.type';
-import { IsGistEmail } from 'src/global/validator/gistEmail.validator';
 
 export class LoginInfoDTO
     implements Pick<UserType, 'userEmailId' | 'userPassword'>

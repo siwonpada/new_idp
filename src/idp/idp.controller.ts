@@ -10,10 +10,10 @@ import {
 } from '@nestjs/common';
 import { IdpService } from './idp.service';
 import { LoginInfoDTO } from './dto/req/loginInfo.dto';
-import { convertCaseInterceptor } from 'src/global/interceptor/convertCase.interceptor';
 import { Request, Response } from 'express';
 import { LoginResDTO } from './dto/res/loginRes.dto';
 import { MessageResDTO } from './dto/res/message.dto';
+import { convertCaseInterceptor } from '@global/interceptor/convertCase.interceptor';
 
 @Controller('idp')
 @UseInterceptors(convertCaseInterceptor)
