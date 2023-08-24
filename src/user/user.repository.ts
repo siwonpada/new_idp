@@ -20,6 +20,14 @@ export class UserRepository {
         });
     }
 
+    async findOneByUuid({
+        userUuid,
+    }: Pick<UserType, 'userUuid'>): Promise<User> {
+        return this.entityManager.findOne(User, {
+            where: { userUuid },
+        });
+    }
+
     async createUser({
         userEmailId,
         userPassword,

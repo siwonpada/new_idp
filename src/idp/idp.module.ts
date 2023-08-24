@@ -5,6 +5,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { IdpService } from './idp.service';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from 'src/user/user.module';
+import { IdpStrategy } from './strategy/idp.strategy';
+import { IdpGuard } from './guard/idp.guard';
 
 @Module({
     imports: [
@@ -26,6 +28,7 @@ import { UserModule } from 'src/user/user.module';
         }),
     ],
     controllers: [IdpController],
-    providers: [IdpService],
+    providers: [IdpService, IdpStrategy, IdpGuard],
+    exports: [IdpGuard],
 })
 export class IdpModule {}

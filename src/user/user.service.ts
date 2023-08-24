@@ -5,7 +5,6 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
-import { MessageResDTO } from './dto/res/message.dto';
 import { SendCertificationCodeDTO } from './dto/req/sendCertificationCode.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -20,6 +19,7 @@ import { DeleteUserDTO } from './dto/req/deleteUser.dto';
 import { ChangePasswordDTO } from './dto/req/changePassword.dto';
 import { UserType } from 'src/global/type/user.type';
 import { User } from 'src/global/entity/user.entity';
+import { MessageResDTO } from './dto/res/message.dto';
 
 @Injectable()
 export class UserService {
@@ -150,6 +150,14 @@ export class UserService {
         if (!user) throw new NotFoundException('user not found');
         if (!bcrypt.compareSync(userPassword, user.userPassword))
             throw new UnauthorizedException('invalid password');
+        return user;
+    }
+
+    async findUserByUuid({
+        userUuid,
+    }: Pick<UserType, 'userUuid'>): Promise<User> {
+        const user = await this.userRepository.findOneByUuid({ userUuid });
+        if (!user) throw new NotFoundException('user not found');
         return user;
     }
 }
