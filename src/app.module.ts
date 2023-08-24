@@ -5,6 +5,7 @@ import { DatabaseConfigModule } from '@global/config/database/database.config.mo
 import { UserModule } from './user/user.module';
 import { ClientModule } from './client/client.module';
 import { IdpModule } from './idp/idp.module';
+import { OauthModule } from './oauth/oauth.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -17,6 +18,7 @@ import { IdpModule } from './idp/idp.module';
         UserModule,
         ClientModule,
         IdpModule,
+        OauthModule,
     ],
     controllers: [AppController],
 })

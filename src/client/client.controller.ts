@@ -12,14 +12,14 @@ import {
 } from '@nestjs/common';
 import { ClientService } from './client.service';
 import { IdpGuard } from 'src/idp/guard/idp.guard';
-import { GetUser } from 'src/global/decorator/getUser.decorator';
-import { User } from 'src/global/entity/user.entity';
-import { Client } from 'src/global/entity/client.entity';
 import { ClientInfoDto } from './dto/req/clientInfo.dto';
 import { ClientCredentialDTO } from './dto/res/clientCredentialRes.dto';
 import { ClientGuard } from './guard/client.guard';
-import { GetClient } from 'src/global/decorator/getClient.decorator';
 import { UpdateClientDTO } from './dto/req/updateClient.dto';
+import { GetClient } from '@global/decorator/getClient.decorator';
+import { GetUser } from '@global/decorator/getUser.decorator';
+import { User } from '@global/entity/user.entity';
+import { Client } from '@global/entity/client.entity';
 
 @Controller('client')
 @UsePipes(new ValidationPipe({ transform: true }))

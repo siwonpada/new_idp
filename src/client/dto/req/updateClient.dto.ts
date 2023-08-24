@@ -1,5 +1,5 @@
+import { ClientType } from '@global/type/client.type';
 import { ArrayMaxSize, IsArray, IsOptional, IsString } from 'class-validator';
-import { ClientType } from 'src/global/type/client.type';
 
 export class UpdateClientDTO
     implements Partial<Pick<ClientType, 'urls' | 'name'>>

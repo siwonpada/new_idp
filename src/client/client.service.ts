@@ -3,8 +3,6 @@ import {
     Injectable,
     InternalServerErrorException,
 } from '@nestjs/common';
-import { Client } from 'src/global/entity/client.entity';
-import { User } from 'src/global/entity/user.entity';
 import { ClientRepository } from './client.repository';
 import * as bcrypt from 'bcrypt';
 import { ClientInfoDto } from './dto/req/clientInfo.dto';
@@ -13,6 +11,8 @@ import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { UpdateClientDTO } from './dto/req/updateClient.dto';
+import { Client } from '@global/entity/client.entity';
+import { User } from '@global/entity/user.entity';
 
 @Injectable()
 export class ClientService {
