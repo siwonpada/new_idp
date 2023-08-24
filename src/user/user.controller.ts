@@ -48,8 +48,8 @@ export class UserController {
     @Patch('/password')
     async changePassword(
         @Body() changePasswordDTO: ChangePasswordDTO,
-    ): Promise<void> {
-        return;
+    ): Promise<MessageResDTO> {
+        return this.userService.changePassword(changePasswordDTO);
     }
 
     @Delete('')

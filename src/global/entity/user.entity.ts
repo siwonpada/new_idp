@@ -20,7 +20,7 @@ export class User implements UserType {
     @Column({ length: stringLength.LONG })
     userEmailId: string;
 
-    @Column({ length: stringLength.SHORT })
+    @Column({ length: stringLength.MEDIUM })
     userPassword: string;
 
     @Column({ unique: true })

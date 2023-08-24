@@ -13,7 +13,7 @@ import { Client } from './client.entity';
 import { User } from './user.entity';
 import { RefreshToken } from './refreshToken.entity';
 
-@Index(['clientUUID', 'userUUID'], { unique: true })
+@Index(['clientUuid', 'userUuid'], { unique: true })
 @Entity('consent')
 export class Consent {
     @PrimaryColumn()

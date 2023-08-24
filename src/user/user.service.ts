@@ -2,6 +2,7 @@ import {
     ForbiddenException,
     Inject,
     Injectable,
+    NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
 import { MessageResDTO } from './dto/res/message.dto';
@@ -128,7 +129,7 @@ export class UserService {
         const user = await this.userRepository.findOneByEmailId({
             userEmailId,
         });
-        if (!user) throw new UnauthorizedException();
+        if (!user) throw new NotFoundException('user not found');
         if (!bcrypt.compareSync(password, user.userPassword))
             throw new UnauthorizedException();
 

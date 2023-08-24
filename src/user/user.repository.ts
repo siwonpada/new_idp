@@ -1,6 +1,7 @@
 import {
     ConflictException,
     Injectable,
+    InternalServerErrorException,
     NotFoundException,
 } from '@nestjs/common';
 import { User } from 'src/global/entity/user.entity';
@@ -33,8 +34,10 @@ export class UserRepository {
             studentId,
             userPhoneNumber,
         });
-        await this.entityManager.save(createdUser).catch(() => {
-            throw new ConflictException('user alread exists');
+        await this.entityManager.save(createdUser).catch((e) => {
+            if (e.errno === 1062)
+                throw new ConflictException('user alread exists');
+            else throw new InternalServerErrorException(e.sqlMessage);
         });
     }
 
@@ -53,8 +56,8 @@ export class UserRepository {
         userEmailId,
     }: Pick<UserType, 'userEmailId'>): Promise<void> {
         await this.entityManager
-            .transaction(async (transactionEntityManger: EntityManager) => {
-                transactionEntityManger.delete(User, userEmailId);
+            .transaction(async (transactionEntityManager: EntityManager) => {
+                await transactionEntityManager.delete(User, { userEmailId });
             })
             .catch(() => {
                 throw new NotFoundException('user not found');
