@@ -17,6 +17,7 @@ import { Client } from '@global/entity/client.entity';
 import { CacheInfo } from './types/cacheInfo.type';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload } from 'jsonwebtoken';
+import { ConfigService } from '@nestjs/config';
 
 const scopesRequireConsent = [
     'profile',
@@ -37,8 +38,15 @@ export class OauthService {
         private readonly jwtService: JwtService,
         private readonly clientService: ClientService,
         private readonly userService: UserService,
+        private readonly configService: ConfigService,
         @Inject(CACHE_MANAGER) private readonly cache: Cache,
     ) {}
+
+    certs() {
+        return {
+            keys: [this.cert()],
+        };
+    }
 
     async authorize(
         { clientId, redirectUri, nonce, scope, responseType }: AuthorizeDTO,
@@ -175,6 +183,24 @@ export class OauthService {
             userEmailId: jwt.email,
             userPhoneNumber: jwt.phoneNumber,
             studentId: jwt.studentId,
+        };
+    }
+
+    private cert() {
+        const sk = crypto.createPrivateKey(
+            this.configService.get<string>('JWT_PRIVATE_KEY'),
+        );
+        const pk = crypto.createPublicKey(sk);
+        const kid = (() => {
+            const shasum = crypto.createHash('sha1');
+            shasum.update(pk.export({ format: 'der', type: 'spki' }));
+            return shasum.digest('hex');
+        })();
+        return {
+            ...pk.export({ format: 'jwk' }),
+            kid,
+            use: 'sig',
+            alg: 'ES256',
         };
     }
 

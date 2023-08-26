@@ -60,7 +60,7 @@ export class OauthController {
 
     @Get('certs')
     async certs() {
-        return;
+        return this.oauthService.certs();
     }
 
     @Get('userinfo')
