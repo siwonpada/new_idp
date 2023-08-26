@@ -38,6 +38,7 @@
     "jsonwebtoken": "^9.0.1",
     "mysql2": "^3.6.0",
     "passport-anonymous": "^1.0.1",
+    "passport-auth-token": "^1.0.1",
     "passport-http": "^0.3.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.1.13",

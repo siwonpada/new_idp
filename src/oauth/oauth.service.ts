@@ -14,6 +14,9 @@ import { JwtService } from '@nestjs/jwt';
 import { UserType } from '@global/types/user.type';
 import { TokenDTO } from './dto/req/token.dto';
 import { Client } from '@global/entity/client.entity';
+import { CacheInfo } from './types/cacheInfo.type';
+import { UserService } from 'src/user/user.service';
+import { JwtPayload } from 'jsonwebtoken';
 
 const scopesRequireConsent = [
     'profile',
@@ -33,6 +36,7 @@ export class OauthService {
     constructor(
         private readonly jwtService: JwtService,
         private readonly clientService: ClientService,
+        private readonly userService: UserService,
         @Inject(CACHE_MANAGER) private readonly cache: Cache,
     ) {}
 
@@ -95,6 +99,82 @@ export class OauthService {
 
         return {
             code,
+        };
+    }
+
+    async token(
+        { code, redirectUri, grantType, refreshToken, ...dto }: TokenDTO,
+        client?: Client,
+    ): Promise<any> {
+        const clientId = client === undefined ? dto.clientId : client.id;
+        if (
+            dto.clientId &&
+            dto.clientSecret &&
+            !(await this.clientService.validateClient(
+                dto.clientId,
+                dto.clientSecret,
+            ))
+        )
+            throw new BadRequestException('unauthorized_client');
+
+        if (grantType === 'authorization_code') {
+            if (!code) throw new BadRequestException('invalid_request');
+            return this.generateAccessToken({
+                code,
+                redirectUri,
+                clientId,
+            });
+        }
+
+        if (!refreshToken) throw new BadRequestException('invalid_request');
+        //TODO: implement refresh token
+        return null;
+    }
+
+    async revoke(revokeDTO: any, client?: Client): Promise<void> {
+        const clientId = client === undefined ? revokeDTO.clientId : client.id;
+        if (
+            revokeDTO.clientId &&
+            revokeDTO.clientSecret &&
+            !(await this.clientService.validateClient(
+                revokeDTO.clientId,
+                revokeDTO.clientSecret,
+            ))
+        )
+            throw new BadRequestException('unauthorized_client');
+
+        if (revokeDTO.token_type_hint === 'access_token') {
+            await this.revokeAccessToken(revokeDTO.token, clientId);
+            return;
+        }
+        if (revokeDTO.token_type_hint === 'refresh_token') {
+            await this.revokeRefreshToken(revokeDTO.token, clientId);
+            return;
+        }
+        if (!(await this.revokeAccessToken(revokeDTO.token, clientId))) {
+            await this.revokeRefreshToken(revokeDTO.token, clientId);
+        }
+    }
+
+    async validateToken(
+        token: string,
+    ): Promise<Omit<UserType, 'userPassword' | 'accessLevel'>> {
+        const cacheInfo: CacheInfo = await this.cache.get(token);
+        if (cacheInfo) {
+            const user = await this.userService.findUserByUuid({
+                userUuid: cacheInfo.userUuid,
+            });
+            return this.filterScopes(cacheInfo.scope, user);
+        }
+        const jwt: JwtPayload = this.jwtService.verify(token).catch(() => {
+            throw new UnauthorizedException('invalid_token');
+        });
+        return {
+            userUuid: jwt.sub,
+            userName: jwt.name,
+            userEmailId: jwt.email,
+            userPhoneNumber: jwt.phoneNumber,
+            studentId: jwt.studentId,
         };
     }
 
@@ -171,28 +251,6 @@ export class OauthService {
         };
     }
 
-    async token(
-        { code, redirectUri, grantType, refreshToken, ...dto }: TokenDTO,
-        client?: Client,
-    ): Promise<any> {
-        const clientId = client === undefined ? dto.clientId : client.id;
-        if (
-            dto.clientId &&
-            dto.clientSecret &&
-            !(await this.clientService.validateClient(
-                dto.clientId,
-                dto.clientSecret,
-            ))
-        )
-            throw new BadRequestException('unauthorized_client');
-
-        if (grantType === 'authorization_code') {
-            if (!code) throw new BadRequestException('invalid_request');
-            return null;
-        }
-        return;
-    }
-
     private async generateAccessToken({
         code,
         redirectUri,
@@ -201,8 +259,38 @@ export class OauthService {
         code: string;
         redirectUri: string;
         clientId: string;
-    }) {
-        return;
+    }): Promise<CacheInfo & { includeRefreshToken: boolean }> {
+        const cacheInfo: CacheInfo = await this.cache.get(code);
+        if (!cacheInfo) throw new BadRequestException('invalid_grant');
+        await this.cache.del(code);
+        if (redirectUri !== cacheInfo.redirectUri)
+            throw new BadRequestException('invalid_grant');
+        if (clientId !== cacheInfo.clientId)
+            throw new BadRequestException('invalid_grant');
+        return {
+            ...cacheInfo,
+            clientId,
+            includeRefreshToken: cacheInfo.scope.includes('offline_access'),
+        };
+    }
+
+    private async revokeAccessToken(
+        token: string,
+        clientId: string,
+    ): Promise<boolean> {
+        const cacheInfo: CacheInfo = await this.cache.get(token);
+        if (!cacheInfo) return false;
+        if (clientId !== cacheInfo.clientId) return false;
+        await this.cache.del(token);
+        return true;
+    }
+
+    private async revokeRefreshToken(
+        token: string,
+        clientId: string,
+    ): Promise<boolean> {
+        //TODO: implement refresh token
+        return true;
     }
 
     private filterScopes(

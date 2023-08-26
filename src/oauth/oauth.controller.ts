@@ -21,11 +21,13 @@ import { GetClient } from '@global/decorator/getClient.decorator';
 import { Client } from '@global/entity/client.entity';
 import { AuthorizeResDTO } from './dto/res/authorizeRes.dto';
 import { TokenResDTO } from './dto/res/tokenRes.dto';
+import { RevokeDTO } from './dto/req/revoke.dto';
+import { Oauth2Guard } from './guard/oauth2.guard';
 
 @Controller('oauth')
 @UseInterceptors(convertCaseInterceptor)
 export class OauthController {
-    constructor(private readonly oauthService: OauthController) {}
+    constructor(private readonly oauthService: OauthService) {}
 
     @Post('authorize')
     @UseGuards(IdpGuard)
@@ -43,13 +45,17 @@ export class OauthController {
         @Body() tokenDTO: TokenDTO,
         @GetClient() client: Client,
     ): Promise<TokenResDTO> {
-        return;
+        return this.oauthService.token(tokenDTO, client);
     }
 
     @Post('revoke')
     @UseGuards(ClientGuard, AnonymousGuard)
-    async revoke() {
-        return;
+    @UsePipes(new ValidationPipe({ transform: true }))
+    async revoke(
+        @Body() revokeDTO: RevokeDTO,
+        @GetClient() client: Client,
+    ): Promise<void> {
+        return this.oauthService.revoke(revokeDTO, client);
     }
 
     @Get('certs')
@@ -58,8 +64,9 @@ export class OauthController {
     }
 
     @Get('userinfo')
-    async validateJwtToken() {
-        return;
+    @UseGuards(Oauth2Guard)
+    async validateJwtToken(@GetUser() user: User) {
+        return user;
     }
 }
 
