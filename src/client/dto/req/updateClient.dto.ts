@@ -1,4 +1,4 @@
-import { ClientType } from '@global/type/client.type';
+import { ClientType } from '@global/types/client.type';
 import { ArrayMaxSize, IsArray, IsOptional, IsString } from 'class-validator';
 
 export class UpdateClientDTO

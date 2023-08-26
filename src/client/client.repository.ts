@@ -1,6 +1,6 @@
 import { Client } from '@global/entity/client.entity';
 import { User } from '@global/entity/user.entity';
-import { ClientType } from '@global/type/client.type';
+import { ClientType } from '@global/types/client.type';
 import {
     ConflictException,
     ForbiddenException,

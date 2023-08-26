@@ -1,4 +1,4 @@
-import { UserType } from '@global/type/user.type';
+import { UserType } from '@global/types/user.type';
 import { IsGistEmail } from '@global/validator/gistEmail.validator';
 import { IsEmail, IsString } from 'class-validator';
 

@@ -18,7 +18,7 @@ import * as bcrypt from 'bcrypt';
 import { DeleteUserDTO } from './dto/req/deleteUser.dto';
 import { ChangePasswordDTO } from './dto/req/changePassword.dto';
 import { MessageResDTO } from './dto/res/message.dto';
-import { UserType } from '@global/type/user.type';
+import { UserType } from '@global/types/user.type';
 import { User } from '@global/entity/user.entity';
 
 @Injectable()

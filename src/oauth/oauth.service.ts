@@ -11,7 +11,9 @@ import * as crypto from 'crypto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { JwtService } from '@nestjs/jwt';
-import { UserType } from '@global/type/user.type';
+import { UserType } from '@global/types/user.type';
+import { TokenDTO } from './dto/req/token.dto';
+import { Client } from '@global/entity/client.entity';
 
 const scopesRequireConsent = [
     'profile',
@@ -169,6 +171,40 @@ export class OauthService {
         };
     }
 
+    async token(
+        { code, redirectUri, grantType, refreshToken, ...dto }: TokenDTO,
+        client?: Client,
+    ): Promise<any> {
+        const clientId = client === undefined ? dto.clientId : client.id;
+        if (
+            dto.clientId &&
+            dto.clientSecret &&
+            !(await this.clientService.validateClient(
+                dto.clientId,
+                dto.clientSecret,
+            ))
+        )
+            throw new BadRequestException('unauthorized_client');
+
+        if (grantType === 'authorization_code') {
+            if (!code) throw new BadRequestException('invalid_request');
+            return null;
+        }
+        return;
+    }
+
+    private async generateAccessToken({
+        code,
+        redirectUri,
+        clientId,
+    }: {
+        code: string;
+        redirectUri: string;
+        clientId: string;
+    }) {
+        return;
+    }
+
     private filterScopes(
         scopes: Readonly<Scope[]> = allowedScopes,
         user: User,
@@ -195,7 +231,7 @@ export class OauthService {
             .replace(/[+\/=]/g, '');
     }
 
-    discovery() {
+    discovery(): any {
         const baseUrl = 'https://api.idp.gistory.me';
         return {
             issuer: 'https://idp.gistory.me',

@@ -1,5 +1,5 @@
 import { User } from '@global/entity/user.entity';
-import { UserType } from '@global/type/user.type';
+import { UserType } from '@global/types/user.type';
 import {
     ConflictException,
     Injectable,

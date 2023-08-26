@@ -1,5 +1,5 @@
 import { stringLength } from '@global/constant/string.length';
-import { AccessLevel, UserType } from '@global/type/user.type';
+import { AccessLevel, UserType } from '@global/types/user.type';
 import {
     Column,
     Entity,
