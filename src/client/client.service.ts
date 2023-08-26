@@ -2,6 +2,7 @@ import {
     ForbiddenException,
     Injectable,
     InternalServerErrorException,
+    NotFoundException,
 } from '@nestjs/common';
 import { ClientRepository } from './client.repository';
 import * as bcrypt from 'bcrypt';
@@ -105,6 +106,13 @@ export class ClientService {
         if (!client) return null;
         if (!bcrypt.compareSync(secret, client.password)) return null;
         return client;
+    }
+
+    async validateUri(id: string, url: string): Promise<boolean> {
+        const client = await this.clientRepository.findById({ id });
+        if (!client) throw new NotFoundException('Client not found');
+        if (!client.urls) return false;
+        return client.urls.includes(url);
     }
 
     private generateSecretKey(): { secretKey: string; hashed: string } {
