@@ -17,13 +17,16 @@ import { OauthRepository } from './oauth.repository';
         IdpModule,
         ClientModule,
         UserModule,
+        ConfigModule,
         CacheModule.register(),
         JwtModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => {
                 const sk = crypto.createPrivateKey(
-                    configService.get<string>('JWT_PRIVATE_KEY'),
+                    configService
+                        .get<string>('JWT_PRIVATE_KEY')
+                        .replace(/\\n/g, '\n'),
                 );
                 const pk = crypto.createPublicKey(sk);
                 const keyid = (() => {
@@ -32,8 +35,8 @@ import { OauthRepository } from './oauth.repository';
                     return shasum.digest('hex');
                 })();
                 return {
-                    privateKey: sk.export(),
-                    publicKey: pk.export(),
+                    privateKey: sk,
+                    publicKey: pk.export({ type: 'spki', format: 'der' }),
                     signOptions: {
                         expiresIn: configService.get<string>('JWT_EXPIRES'),
                         algorithm: 'RS256',

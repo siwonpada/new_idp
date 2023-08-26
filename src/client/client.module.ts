@@ -6,11 +6,12 @@ import { ConfigModule } from '@nestjs/config';
 import { IdpModule } from 'src/idp/idp.module';
 import { ClientStrategy } from './strategy/client.strategy';
 import { ClientGuard } from './guard/client.guard';
+import { ClientRepository } from './client.repository';
 
 @Module({
     imports: [HttpModule, ConfigModule, IdpModule],
     controllers: [ClientController],
-    providers: [ClientService, ClientStrategy, ClientGuard],
+    providers: [ClientService, ClientRepository, ClientStrategy, ClientGuard],
     exports: [ClientService, ClientGuard],
 })
 export class ClientModule {}

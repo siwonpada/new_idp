@@ -204,7 +204,9 @@ export class OauthService {
 
     private cert() {
         const sk = crypto.createPrivateKey(
-            this.configService.get<string>('JWT_PRIVATE_KEY'),
+            this.configService
+                .get<string>('JWT_PRIVATE_KEY')
+                .replace(/\\n/g, '\n'),
         );
         const pk = crypto.createPublicKey(sk);
         const kid = (() => {
