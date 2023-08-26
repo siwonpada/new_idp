@@ -18,6 +18,7 @@ import { CacheInfo } from './types/cacheInfo.type';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload } from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
+import { OauthRepository } from './oauth.repository';
 
 const scopesRequireConsent = [
     'profile',
@@ -39,6 +40,7 @@ export class OauthService {
         private readonly clientService: ClientService,
         private readonly userService: UserService,
         private readonly configService: ConfigService,
+        private readonly oauthRepository: OauthRepository,
         @Inject(CACHE_MANAGER) private readonly cache: Cache,
     ) {}
 
@@ -135,8 +137,22 @@ export class OauthService {
         }
 
         if (!refreshToken) throw new BadRequestException('invalid_request');
-        //TODO: implement refresh token
-        return null;
+        const refreshTokenFromDB = await this.oauthRepository.findRefreshToken(
+            refreshToken,
+        );
+        if (!refreshTokenFromDB) throw new BadRequestException('invalid_grant');
+        await this.oauthRepository.updateOauthRefreshToken({
+            user: refreshTokenFromDB.consent.user,
+            clientId,
+            token: refreshTokenFromDB.token,
+            scopes: refreshTokenFromDB.scopes,
+        });
+        return this.createToken({
+            scope: refreshTokenFromDB.scopes,
+            clientId,
+            user: refreshTokenFromDB.consent.user,
+            excludeIdToken: true,
+        });
     }
 
     async revoke(revokeDTO: any, client?: Client): Promise<void> {
@@ -236,7 +252,13 @@ export class OauthService {
         }>
     > {
         const filteredUser = this.filterScopes(scope, user);
-        //TODO: implement update Consent
+        await this.oauthRepository.updateUserConsent(
+            user,
+            scope.filter((s) =>
+                (scopesRequireConsent as Readonly<string[]>).includes(s),
+            ),
+            clientId,
+        );
         return {
             code,
             ...(excludeAccessToken
@@ -270,7 +292,12 @@ export class OauthService {
             refreshToken: includeRefreshToken
                 ? await (async () => {
                       const token = this.generateOpaqueToken();
-                      //TODO: implement refresh token
+                      this.oauthRepository.updateOauthRefreshToken({
+                          user,
+                          clientId,
+                          token,
+                          scopes: scope,
+                      });
                       return token;
                   })()
                 : undefined,
@@ -316,6 +343,7 @@ export class OauthService {
         clientId: string,
     ): Promise<boolean> {
         //TODO: implement refresh token
+        await this.oauthRepository.deleteRefreshToken(token, clientId);
         return true;
     }
 

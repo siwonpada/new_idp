@@ -10,6 +10,7 @@ import * as crypto from 'crypto';
 import { UserModule } from 'src/user/user.module';
 import { AnonymousStrategy } from './strategy/anonymous.strategy';
 import { AnonymousGuard } from './guard/anonymous.guard';
+import { OauthRepository } from './oauth.repository';
 
 @Module({
     imports: [
@@ -44,6 +45,11 @@ import { AnonymousGuard } from './guard/anonymous.guard';
         }),
     ],
     controllers: [OauthController, OpenIDDiscoveryController],
-    providers: [OauthService, AnonymousStrategy, AnonymousGuard],
+    providers: [
+        OauthService,
+        OauthRepository,
+        AnonymousStrategy,
+        AnonymousGuard,
+    ],
 })
 export class OauthModule {}

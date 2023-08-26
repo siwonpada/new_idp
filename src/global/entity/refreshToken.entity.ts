@@ -7,6 +7,7 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import { Consent } from './consent.entity';
+import { Scope } from 'src/oauth/oauth.service';
 
 @Entity('refresh_token')
 export class RefreshToken {
@@ -14,7 +15,7 @@ export class RefreshToken {
     token: string;
 
     @Column('simple-array')
-    scopes: string;
+    scopes: Scope[];
 
     @CreateDateColumn()
     createdAt: Date;
